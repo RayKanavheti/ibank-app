@@ -1,0 +1,56 @@
+spring:
+  application:
+    name: account-service
+  data:
+    redis:
+      connect-timeout: 2s
+      host: localhost
+      port: 6379
+      timeout: 1s
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: backend_service
+    password: pass123
+  r2dbc:
+    username: ${JDBC_DATABASE_USERNAME:postgres}
+    password: ${JDBC_DATABASE_PASSWORD:postgres}
+    url: ${R2DBC_DATABASE_URL:r2dbc:postgresql://localhost:5432/ibank}
+    pool:
+      max-create-connection-time: 2s
+      initial-size: 5
+      max-size: 10
+  flyway:
+    user: ${spring.r2dbc.username}
+    password: ${spring.r2dbc.password}
+    url: ${JDBC_DATABASE_URL:jdbc:postgresql://localhost:5432/ibank}
+
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    username: ${JDBC_DATABASE_USERNAME:postgres}
+    password: ${JDBC_DATABASE_PASSWORD:postgres}
+    url: ${JDBC_DATABASE_URL:jdbc:postgresql://localhost:5432/ibank}
+
+
+server:
+  port: 8082
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/
+      initialInstanceInfoReplicationIntervalSeconds: 5
+      registryFetchIntervalSeconds: 5
+  instance:
+    leaseRenewalIntervalInSeconds: 5
+    leaseExpirationDurationInSeconds: 5
+    hostname: localhost
+
+auth:
+  secret-key: ${SECRET_KEY:5367566B59703273357638792GSFHSTTHHS52241255555552212}
+
+token-duration:
+  access-token: 300 #5 seconds
+
+client:
+  name: ibank-web-frontend
+  scope: ibank:service-request

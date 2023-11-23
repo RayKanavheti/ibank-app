@@ -1,0 +1,55 @@
+#App
+spring:
+  application:
+    name: EDGE-SERVER
+server:
+  port: 8085
+#Actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+    health:
+      show-details: always
+
+#Logs
+logging:
+  level:
+    root: INFO
+    org.springframework.cloud.gateway.route.RouteDefinitionRouteLocator: INFO
+    org.springframework.cloud.gateway: TRACE
+
+#Eureka
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/
+      initialInstanceInfoReplicationIntervalSeconds: 5
+      registryFetchIntervalSeconds: 5
+  instance:
+    leaseRenewalIntervalInSeconds: 5
+    leaseExpirationDurationInSeconds: 5
+    hostname: localhost
+#Routes
+spring.cloud.gateway.routes:
+  - id: account-service
+    uri: lb://ACCOUNT-SERVICE
+    predicates:
+      - Path=/account/**
+  - id: transaction-service
+    uri: lb://TRANSACTION-SERVICE
+    predicates:
+      - Path=/transaction/**
+  - id: customer-support-service
+    uri: lb://CUSTOMER-SUPPORT-SERVICE
+    predicates:
+      - Path=/customer-support/**
+  - id: eureka-ui
+    uri: http://localhost:8761
+    predicates:
+      - Path=/eurekawebui
+  - id: eureka-css-js
+    uri: http://localhost:8761
+    predicates:
+      - Path=/eureka/**

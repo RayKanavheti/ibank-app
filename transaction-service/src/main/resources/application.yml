@@ -1,0 +1,5 @@
+
+
+ibank.transaction.service.exchange=ecopay-core-service-queue
+ecopay.core.service.exchange=ecopay-core-service-exchange
+ibank.transaction.service.key=ecopay-core-service-key
