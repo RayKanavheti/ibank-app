@@ -5,10 +5,7 @@ import lombok.Data;
 import java.math.BigDecimal;
 
 @Data
-public class DepositFundsRequest
-{
-    private String toAccountNumber;
-
+public class WithDrawFundsRequest {
+    private String fromAccountNumber;
     private BigDecimal amount;
-
 }

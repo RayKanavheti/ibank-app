@@ -1,4 +1,4 @@
-package com.equals.accountservice.customer;
+package com.equals.accountservice.domain;
 
 import com.equals.accountservice.auth.User;
 import lombok.Data;

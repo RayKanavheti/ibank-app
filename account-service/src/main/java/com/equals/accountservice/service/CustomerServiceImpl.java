@@ -1,5 +1,7 @@
-package com.equals.accountservice.customer;
+package com.equals.accountservice.service;
 
+import com.equals.accountservice.domain.Customer;
+import com.equals.accountservice.repository.CustomerRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;

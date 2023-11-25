@@ -1,4 +1,4 @@
-package com.equals.transactionservice.domain;
+package com.equals.accountservice.domain;
 
 import lombok.Data;
 import org.springframework.data.annotation.Id;
@@ -24,5 +24,6 @@ public class Statement {
     private LocalDateTime postDate;
 
     private String accountNumber;
+
 
 }

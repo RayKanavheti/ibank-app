@@ -1,6 +1,7 @@
-package com.equals.accountservice.customer;
+package com.equals.accountservice.api;
 
-import com.equals.accountservice.auth.User;
+import com.equals.accountservice.domain.Customer;
+import com.equals.accountservice.service.CustomerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -15,7 +16,7 @@ public class CustomerController {
     @Autowired
     CustomerService customerService;
 
-    @PostMapping("/register")
+    @PostMapping()
     public Mono<Customer> createCustomer(@RequestBody Customer customer) {
         return customerService.createCustomer(customer);
     }

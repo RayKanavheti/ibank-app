@@ -1,95 +1,115 @@
 package com.equals.transactionservice.service;
 
-import com.equals.transactionservice.client.AccountServiceClient;
-import com.equals.transactionservice.domain.Statement;
 import com.equals.transactionservice.domain.Transaction;
 import com.equals.transactionservice.domain.TransactionType;
-import com.equals.transactionservice.dto.AccountBalanceDto;
 import com.equals.transactionservice.dto.DepositFundsRequest;
-import com.equals.transactionservice.repository.StatementRepository;
+import com.equals.transactionservice.dto.InternalTransferRequest;
+import com.equals.transactionservice.dto.TransactionDto;
+import com.equals.transactionservice.dto.WithDrawFundsRequest;
 import com.equals.transactionservice.repository.TransactionRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
 import static com.equals.transactionservice.config.RabbitConfig.IBANK_TRANSACTION_QUEUE;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class TransactionServiceImpl implements TransactionService {
 
     private final TransactionRepository transactionRepository;
-    private final StatementRepository statementRepository;
-
     private final RabbitTemplate rabbitTemplate;
-    private final AccountServiceClient accountServiceClient;
 
     @Override
     @Transactional
     public Mono<Transaction> depositFunds(DepositFundsRequest request) {
 
-        Transaction transaction = new Transaction();
-        transaction.setTransactionDate(LocalDateTime.now());
-        transaction.setTransactionType(TransactionType.DEPOSIT);
-        transaction.setAmount(request.getAmount());
-        transaction.setReference(UUID.randomUUID().toString());
-        transaction.setToAccount(request.getAccountNumber());
+        Transaction transaction = buildTransaction(TransactionType.DEPOSIT, request.getAmount());
+        transaction.setToAccount(request.getToAccountNumber());
 
         return transactionRepository.save(transaction).
                 flatMap(trans -> {
-                    rabbitTemplate.convertAndSend(IBANK_TRANSACTION_QUEUE, trans);
-                    statementRepository.getRecentBalance(trans.getTransactionDate(), request.getAccountNumber()).subscribe(
-                            balance -> {
-                                Statement statement = new Statement();
-                                if (balance != null) {
+                    log.info("Transaction {}", trans);
+                    TransactionDto transactionDto = buildTransactionDto(trans);
+                    transactionDto.setToAccount(trans.getToAccount());
+                    rabbitTemplate.convertAndSend(IBANK_TRANSACTION_QUEUE, transactionDto);
 
-                                    statement.setBalance(balance);
-                                } else{
-                                    AccountBalanceDto balanceDto = accountServiceClient.getAccountBalance(request.getAccountNumber());
-                                    statement.setBalance(balanceDto.getBalance());
-                                }
-                                statement.setTransactionId(trans.getId());
-                                statement.setCreditAmount(trans.getAmount());
-                                statement.setNarrative(trans.getTransactionType().toString());
-                                statement.setReference(trans.getReference());
-                                statement.setAccountNumber(request.getAccountNumber());
-                                statement.setPostDate(trans.getTransactionDate());
-                                statementRepository.save(statement).block();
-
-                            }
-                    );
                     return Mono.just(trans);
-                });
+                }).doOnError(throwable -> log.error("Failed to Deposit Funds", throwable));
 
     }
 
     @Override
-    public void internalTransfer() {
+    @Transactional
+    public Mono<Transaction> internalTransfer(InternalTransferRequest request) {
+        Transaction transaction = buildTransaction(TransactionType.INTERNAL_FUND_TRANSFER, request.getAmount());
+        transaction.setToAccount(request.getToAccountNumber());
+        transaction.setFromAccount(request.getFromAccountNumber());
+        return transactionRepository.save(transaction).
+                flatMap(trans -> {
+                    log.info("Transaction {}", trans);
+                    TransactionDto transactionDto = buildTransactionDto(trans);
+                    transactionDto.setFromAccount(trans.getFromAccount());
+                    transactionDto.setToAccount(trans.getToAccount());
 
+                    rabbitTemplate.convertAndSend(IBANK_TRANSACTION_QUEUE, transactionDto);
+
+                    return Mono.just(trans);
+                }).doOnError(throwable -> log.error("Failed to process internal Transfer", throwable));
     }
 
     @Override
-    public void withdrawFunds() {
-
+    @Transactional
+    public Mono<Transaction> withdrawFunds(WithDrawFundsRequest request) {
+        Transaction transaction = buildTransaction(TransactionType.WITHDRAWAL, request.getAmount());
+        transaction.setFromAccount(request.getFromAccountNumber());
+        return transactionRepository.save(transaction).
+                flatMap(trans -> {
+                    log.info("Transaction {}", trans);
+                    TransactionDto transactionDto = buildTransactionDto(trans);
+                    transactionDto.setFromAccount(trans.getFromAccount());
+                    rabbitTemplate.convertAndSend(IBANK_TRANSACTION_QUEUE, transactionDto);
+                    return Mono.just(trans);
+                }).doOnError(throwable -> log.error("Failed to withdraw funds", throwable));
     }
 
     @Override
-    public void externalTransfer() {
+    public Mono<Transaction> externalTransfer(InternalTransferRequest request) {
 
+        return internalTransfer(request);
+        // TODO to include logic for external banks e.g external bank acknowledging having received funds by way of a call back URL, probably stub a third party bank
     }
 
-    @Override
-    public void billPayment() {
 
+    private Transaction buildTransaction(TransactionType type, BigDecimal amount) {
+        Transaction transaction = new Transaction();
+        transaction.setTransactionDate(LocalDateTime.now());
+        transaction.setTransactionType(type);
+        transaction.setReference(UUID.randomUUID().toString());
+        transaction.setAmount(amount);
+        return transaction;
     }
 
-    @Override
-    public void balanceEnquiry() {
+    private TransactionDto buildTransactionDto(Transaction trans) {
+        TransactionDto transaction = new TransactionDto();
+        transaction.setTransactionType(trans.getTransactionType());
+        transaction.setTransactionDate(trans.getTransactionDate().format(formatDate()));
+        transaction.setId(trans.getId());
+        transaction.setReference(trans.getReference());
+        transaction.setAmount(trans.getAmount());
+        return transaction;
+    }
 
+    DateTimeFormatter formatDate() {
+        return DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
     }
 }

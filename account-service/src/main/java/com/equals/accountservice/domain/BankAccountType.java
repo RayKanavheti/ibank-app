@@ -1,4 +1,4 @@
-package com.equals.accountservice.customer.bankaccount;
+package com.equals.accountservice.domain;
 
 public enum BankAccountType {
     CURRENT_ACCOUNT,

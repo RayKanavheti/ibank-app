@@ -65,7 +65,7 @@ public class SecurityConfig {
                 .authorizeExchange(exchange ->exchange
                         .pathMatchers("auth/logout").authenticated()
                         .pathMatchers("/account/register","/actuator/**").permitAll()
-                        .anyExchange().authenticated()
+                        .anyExchange().permitAll()
                 )
                 .oauth2ResourceServer(oauth -> oauth.jwt(jwtSpec -> jwtSpec
                         .jwtDecoder(jwtDecoder())

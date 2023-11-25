@@ -1,6 +1,5 @@
-package com.equals.accountservice.bankaccount;
+package com.equals.accountservice.domain;
 
-import com.equals.accountservice.customer.Customer;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Transient;
@@ -10,12 +9,12 @@ import org.springframework.data.relational.core.mapping.Table;
 import java.math.BigDecimal;
 
 @Data
-@Table("bank_account")
+@Table("bank_accounts")
 public class BankAccount {
     @Id
     private Long id;
-    private String accountNumber;
 
+    private String accountNumber;
     private BigDecimal accountBalance;
 
     private BankAccountType accountType; //Enumeration

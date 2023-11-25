@@ -1,5 +1,7 @@
 package com.equals.transactionservice.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.annotation.EnableRabbit;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
@@ -46,6 +48,8 @@ public class RabbitConfig {
     public AmqpTemplate template(ConnectionFactory connectionFactory) {
         final RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
         rabbitTemplate.setMessageConverter(converter());
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
         return rabbitTemplate;
     }
 

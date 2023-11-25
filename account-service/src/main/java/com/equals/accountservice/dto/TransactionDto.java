@@ -1,18 +1,16 @@
-package com.equals.transactionservice.domain;
+package com.equals.accountservice.dto;
 
 import lombok.Data;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.relational.core.mapping.Table;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
-@Table("transactions")
-public class Transaction {
-    @Id
+public class TransactionDto {
+
     private Long id;
-    private LocalDateTime transactionDate;
+    private String transactionDate;
     private TransactionType transactionType;
 
     private String reference;
@@ -21,6 +19,5 @@ public class Transaction {
 
     private String fromAccount;
 
-    private String toAccount;
-
+    private String ToAccount;
 }

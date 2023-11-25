@@ -1,6 +1,7 @@
-package com.equals.accountservice.bankaccount;
+package com.equals.accountservice.api;
 
-import com.equals.accountservice.customer.Customer;
+import com.equals.accountservice.domain.BankAccount;
+import com.equals.accountservice.service.BankAccountService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;

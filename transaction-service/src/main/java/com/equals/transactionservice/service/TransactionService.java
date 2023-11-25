@@ -2,6 +2,8 @@ package com.equals.transactionservice.service;
 
 import com.equals.transactionservice.domain.Transaction;
 import com.equals.transactionservice.dto.DepositFundsRequest;
+import com.equals.transactionservice.dto.InternalTransferRequest;
+import com.equals.transactionservice.dto.WithDrawFundsRequest;
 import reactor.core.publisher.Mono;
 
 public interface TransactionService {
@@ -10,14 +12,12 @@ public interface TransactionService {
 
     Mono<Transaction> depositFunds(DepositFundsRequest request);
 
-    void internalTransfer();
+    Mono<Transaction> internalTransfer(InternalTransferRequest request);
 
-    void withdrawFunds();
+     Mono<Transaction>  withdrawFunds(WithDrawFundsRequest request);
 
-    void externalTransfer();
-
-    void billPayment();
+    Mono<Transaction> externalTransfer(InternalTransferRequest request);
 
 
-    void balanceEnquiry();
+
 }
