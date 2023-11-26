@@ -1,0 +1,58 @@
+
+spring:
+
+  application:
+    name: customer-support-service
+  cloud:
+    function:
+      definition: supportTicketBinding
+    stream:
+      bindings:
+        supportTicketBinding-out-0:
+          destination: ticket
+          producer:
+            required-groups: tickets
+        supportTicketBinding-in-0:
+          destination: ticket
+          group: tickets
+
+  data:
+    mongodb:
+      #uri: mongodb://root:admin@localhost:27017/tickets
+      authentication-database: admin
+      username: root
+      password: mongodb
+      host: localhost
+      database: tickets
+      port: 27017
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: backend_service
+    password: pass123
+
+server:
+  port: 8087
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/
+      initialInstanceInfoReplicationIntervalSeconds: 5
+      registryFetchIntervalSeconds: 5
+  instance:
+    leaseRenewalIntervalInSeconds: 5
+    leaseExpirationDurationInSeconds: 5
+    hostname: localhost
+
+auth:
+  secret-key: ${SECRET_KEY:5367566B59703273357638792GSFHSTTHHS52241255555552212}
+
+token-duration:
+  access-token: 300 #5 seconds
+
+client:
+  name: ibank-web-frontend
+  scope: ibank:service-request
+logging:
+  level:
+    org.springframework.cloud.stream: DEBUG
