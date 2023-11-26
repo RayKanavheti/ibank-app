@@ -3,6 +3,7 @@ package com.equals.accountservice.service;
 import com.equals.accountservice.domain.BankAccount;
 import com.equals.accountservice.repository.BankAccountRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -13,9 +14,12 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class BankAccountServiceImpl implements BankAccountService {
 
     private final BankAccountRepository bankAccountRepository;
+    private final BankAccountCacheService bankAccountCacheService;
+
     @Override
     public Mono<BankAccount> createBankAccount(BankAccount bankAccount) {
         bankAccount.setAccountNumber(generateRandomNumber());
@@ -26,17 +30,26 @@ public class BankAccountServiceImpl implements BankAccountService {
 
     @Override
     public Mono<Integer> addAccountBalance(BigDecimal amount, String accountNumber) {
-        return bankAccountRepository.addBankAccountBalance(amount, accountNumber);
+        return bankAccountRepository.addBankAccountBalance(amount, accountNumber).flatMap(val -> bankAccountCacheService.deleteFromCache(accountNumber)
+                .thenReturn(val));
     }
 
     @Override
     public Mono<Integer> subtractAccountBalance(BigDecimal amount, String accountNumber) {
-        return bankAccountRepository.subtractBankAccountBalance(amount, accountNumber);
+
+        return bankAccountRepository.subtractBankAccountBalance(amount, accountNumber)
+                .flatMap(val -> bankAccountCacheService.deleteFromCache(accountNumber)
+                        .thenReturn(val));
     }
 
     @Override
     public Mono<BankAccount> findBankAccountByAccountNumber(String accountNumber) {
-        return bankAccountRepository.findBankAccountByAccountNumber(accountNumber);
+        return bankAccountCacheService.findByAccountNumber(accountNumber)
+                .switchIfEmpty(bankAccountRepository.findBankAccountByAccountNumber(accountNumber)
+                        .flatMap(bankAccount -> bankAccountCacheService.saveToCache(bankAccount.getAccountNumber(), bankAccount)
+                                .thenReturn(bankAccount))
+                );
+
     }
 
     @Override

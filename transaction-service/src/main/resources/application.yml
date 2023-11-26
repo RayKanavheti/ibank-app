@@ -1,7 +1,15 @@
 
 spring:
+
   application:
     name: transaction-service
+  cloud:
+    stream:
+      bindings:
+        transactionBinding-out-0:
+          destination: transaction
+          producer:
+            required-groups: transactions
   data:
     redis:
       connect-timeout: 2s
@@ -55,3 +63,6 @@ token-duration:
 client:
   name: ibank-web-frontend
   scope: ibank:service-request
+logging:
+  level:
+    org.springframework.cloud.stream: DEBUG

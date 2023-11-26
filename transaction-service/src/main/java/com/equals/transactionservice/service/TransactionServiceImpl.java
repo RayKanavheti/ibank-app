@@ -10,6 +10,7 @@ import com.equals.transactionservice.repository.TransactionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
@@ -19,7 +20,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
-import static com.equals.transactionservice.config.RabbitConfig.IBANK_TRANSACTION_QUEUE;
+//import static com.equals.transactionservice.config.RabbitConfig.IBANK_TRANSACTION_QUEUE;
 
 @Slf4j
 @Service
@@ -28,7 +29,8 @@ public class TransactionServiceImpl implements TransactionService {
 
     private final TransactionRepository transactionRepository;
     private final RabbitTemplate rabbitTemplate;
-
+    private final StreamBridge streamBridge;
+    public static final String IBANK_TRANSACTION_QUEUE = "transactionBinding-out-0";
     @Override
     @Transactional
     public Mono<Transaction> depositFunds(DepositFundsRequest request) {
@@ -41,7 +43,8 @@ public class TransactionServiceImpl implements TransactionService {
                     log.info("Transaction {}", trans);
                     TransactionDto transactionDto = buildTransactionDto(trans);
                     transactionDto.setToAccount(trans.getToAccount());
-                    rabbitTemplate.convertAndSend(IBANK_TRANSACTION_QUEUE, transactionDto);
+                   // rabbitTemplate.convertAndSend(IBANK_TRANSACTION_QUEUE, transactionDto);
+                    streamBridge.send(IBANK_TRANSACTION_QUEUE, transactionDto);
 
                     return Mono.just(trans);
                 }).doOnError(throwable -> log.error("Failed to Deposit Funds", throwable));
@@ -61,8 +64,8 @@ public class TransactionServiceImpl implements TransactionService {
                     transactionDto.setFromAccount(trans.getFromAccount());
                     transactionDto.setToAccount(trans.getToAccount());
 
-                    rabbitTemplate.convertAndSend(IBANK_TRANSACTION_QUEUE, transactionDto);
-
+                   // rabbitTemplate.convertAndSend(IBANK_TRANSACTION_QUEUE, transactionDto);
+                    streamBridge.send(IBANK_TRANSACTION_QUEUE, transactionDto);
                     return Mono.just(trans);
                 }).doOnError(throwable -> log.error("Failed to process internal Transfer", throwable));
     }
@@ -77,7 +80,9 @@ public class TransactionServiceImpl implements TransactionService {
                     log.info("Transaction {}", trans);
                     TransactionDto transactionDto = buildTransactionDto(trans);
                     transactionDto.setFromAccount(trans.getFromAccount());
-                    rabbitTemplate.convertAndSend(IBANK_TRANSACTION_QUEUE, transactionDto);
+                   // rabbitTemplate.convertAndSend(IBANK_TRANSACTION_QUEUE, transactionDto);
+                    streamBridge.send(IBANK_TRANSACTION_QUEUE, transactionDto);
+
                     return Mono.just(trans);
                 }).doOnError(throwable -> log.error("Failed to withdraw funds", throwable));
     }

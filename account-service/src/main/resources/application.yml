@@ -1,12 +1,19 @@
 spring:
   application:
     name: account-service
+  cloud:
+    function:
+      definition: transactionBinding
+    stream:
+      bindings:
+        transactionBinding-in-0:
+          destination: transaction
+          group: transactions
   data:
     redis:
-      connect-timeout: 2s
       host: localhost
       port: 6379
-      timeout: 1s
+
   rabbitmq:
     host: localhost
     port: 5672
@@ -31,9 +38,8 @@ spring:
     password: ${JDBC_DATABASE_PASSWORD:postgres}
     url: ${JDBC_DATABASE_URL:jdbc:postgresql://localhost:5432/ibank_account}
 
-
 server:
-  port: 8082
+  port: 8089
 eureka:
   client:
     serviceUrl:
@@ -54,3 +60,7 @@ token-duration:
 client:
   name: ibank-web-frontend
   scope: ibank:service-request
+logging:
+  level:
+    org.springframework.cloud.stream: DEBUG
+    org.springframework.data.redis: DEBUG

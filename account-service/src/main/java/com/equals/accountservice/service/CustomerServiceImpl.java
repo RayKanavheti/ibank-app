@@ -1,5 +1,6 @@
 package com.equals.accountservice.service;
 
+import com.equals.accountservice.domain.BankAccount;
 import com.equals.accountservice.domain.Customer;
 import com.equals.accountservice.repository.CustomerRepository;
 import lombok.RequiredArgsConstructor;

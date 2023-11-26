@@ -6,11 +6,12 @@ import org.springframework.data.annotation.Transient;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 
 @Data
 @Table("bank_accounts")
-public class BankAccount {
+public class BankAccount implements Serializable {
     @Id
     private Long id;
 

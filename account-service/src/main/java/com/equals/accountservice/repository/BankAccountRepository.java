@@ -22,10 +22,10 @@ public interface BankAccountRepository extends ReactiveCrudRepository<BankAccoun
 
     @Modifying
     @Query(value = "UPDATE bank_accounts SET account_balance = account_balance - :amount WHERE account_number = :accountNumber" )
-    @CacheEvict(cacheNames = "statementByAccountNumber", key = "#accountNumber")
+   @CacheEvict(cacheNames = "statementByAccountNumber", key = "#accountNumber")
     Mono<Integer> subtractBankAccountBalance(BigDecimal amount, String accountNumber);
 
-    @Cacheable(cacheNames = "statementByAccountNumber", key = "#accountNumber")
+
     Mono<BankAccount> findBankAccountByAccountNumber(String accountNumber);
 
     @Query("SELECT * FROM bank_accounts WHERE account_number IN (:accountNumbers)")
