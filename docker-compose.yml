@@ -1,31 +1,31 @@
 version: '3'
  
 services:
-  # postgres:
-  #   container_name: postgres_iBank
-  #   restart: unless-stopped
-  #   build: .
-  #   image: 'postgres:latest'
-  #   environment:
-  #     - 'POSTGRES_DB=postgres'
-  #     - 'POSTGRES_PASSWORD=postgres!'
-  #     - 'POSTGRES_USER=postgres'
-  #   ports:
-  #     - '5432:5432'
-  #   volumes:
-  #     - ./init.sql:/docker-entrypoint-initdb.d/init.sql
-  # pgadmin:
-  #   container_name: pgadmin4_container
-  #   image: dpage/pgadmin4
-  #   restart: unless-stopped
-  #   build: .
-  #   environment:
-  #     PGADMIN_DEFAULT_EMAIL: admin@admin.com
-  #     PGADMIN_DEFAULT_PASSWORD: postgres!
-  #   ports:
-  #     - "5050:80"
-  #   depends_on:
-  #     - postgres
+  postgres:
+    container_name: postgres
+    restart: unless-stopped
+    build: .
+    image: 'postgres:latest'
+    environment:
+      - 'POSTGRES_DB=postgres'
+      - 'POSTGRES_PASSWORD=postgres'
+      - 'POSTGRES_USER=postgres'
+    ports:
+      - '5432:5432'
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+  pgadmin:
+    container_name: pgadmin4_container
+    image: dpage/pgadmin4
+    restart: unless-stopped
+    build: .
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: postgres
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
  
   rabbitmq:
     environment:

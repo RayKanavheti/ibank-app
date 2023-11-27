@@ -22,11 +22,11 @@ spring:
       authentication-database: admin
       username: root
       password: mongodb
-      host: localhost
+      host: mongodb_container
       database: tickets
       port: 27017
   rabbitmq:
-    host: localhost
+    host: rabbitmq
     port: 5672
     username: backend_service
     password: pass123
@@ -36,7 +36,7 @@ server:
 eureka:
   client:
     serviceUrl:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: http://eureka-server:8761/eureka/
       initialInstanceInfoReplicationIntervalSeconds: 5
       registryFetchIntervalSeconds: 5
   instance:
