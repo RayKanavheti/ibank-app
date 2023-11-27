@@ -6,10 +6,8 @@ import com.equals.transactionservice.dto.InternalTransferRequest;
 import com.equals.transactionservice.dto.WithDrawFundsRequest;
 import com.equals.transactionservice.service.TransactionService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @RestController
@@ -31,5 +29,10 @@ public class TransactionController {
     @PostMapping("/withdraw")
     public Mono<Transaction> cashWithDraw(@RequestBody WithDrawFundsRequest request) {
         return transactionService.withdrawFunds(request);
+    }
+
+    @GetMapping("/recenttransactions/{accountNumber}")
+    public Flux<Transaction> getRecentTransactions(@PathVariable String accountNumber) {
+        return transactionService.getRecentTransactions(accountNumber);
     }
 }

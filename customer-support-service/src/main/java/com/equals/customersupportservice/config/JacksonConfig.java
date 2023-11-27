@@ -1,4 +1,4 @@
-package com.equals.transactionservice.config;
+package com.equals.customersupportservice.config;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;

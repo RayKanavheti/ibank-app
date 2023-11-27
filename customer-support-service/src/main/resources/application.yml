@@ -8,13 +8,13 @@ spring:
       definition: supportTicketBinding
     stream:
       bindings:
+        supportTicketBinding-in-0:
+          destination: ticket
+          group: tickets
         supportTicketBinding-out-0:
           destination: ticket
           producer:
             required-groups: tickets
-        supportTicketBinding-in-0:
-          destination: ticket
-          group: tickets
 
   data:
     mongodb:

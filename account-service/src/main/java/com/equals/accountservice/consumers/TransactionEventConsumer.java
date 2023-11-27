@@ -32,11 +32,11 @@ public class TransactionEventConsumer {
         return (msg) -> {
             try {
                 log.info("Received the message in Consumer: {}", msg);
-            System.out.println("Received the message in Consumer :"+msg);
-            receiveTransactions(msg).subscribe();
-        } catch (Exception e) {
-            log.error("Error processing message: {}", msg, e);
-        }
+                System.out.println("Received the message in Consumer :" + msg);
+                receiveTransactions(msg).subscribe();
+            } catch (Exception e) {
+                log.error("Error processing message: {}", msg, e);
+            }
         };
     }
 
@@ -49,13 +49,13 @@ public class TransactionEventConsumer {
             }
 
             case INTERNAL_FUND_TRANSFER -> {
-                return  processInternalFundTransfer(transaction);
+                return processInternalFundTransfer(transaction);
 
             }
 
-            case  WITHDRAWAL -> {
+            case WITHDRAWAL -> {
 
-                return  processWithDrawal(transaction);
+                return processWithDrawal(transaction);
             }
 
 
@@ -82,7 +82,7 @@ public class TransactionEventConsumer {
                         statement2.setCreditAmount(BigDecimal.ZERO);
                         statement2.setAccountNumber(transaction.getFromAccount());
                         existingAccounts.forEach(acc -> {
-                            if(acc.getAccountNumber().equals(transaction.getToAccount())) {
+                            if (acc.getAccountNumber().equals(transaction.getToAccount())) {
                                 statement.setBalance(acc.getAccountBalance().add(transaction.getAmount()));
                             } else {
                                 statement2.setBalance(acc.getAccountBalance().subtract(transaction.getAmount()));
@@ -99,7 +99,7 @@ public class TransactionEventConsumer {
                     } else {
                         return Mono.error(new RuntimeException("Exactly two accounts are required, but found: " + existingAccounts.size()));
                     }
-                }) .doOnSuccess(success -> log.info("Internal Funds processing completed"))
+                }).doOnSuccess(success -> log.info("Internal Funds processing completed"))
                 .doOnError(error -> log.error("Error processing internal Funds transfer", error))
                 .then();
 
@@ -150,6 +150,7 @@ public class TransactionEventConsumer {
                 .doOnError(error -> log.error("Error processing cash withdrawal", error))
                 .then();
     }
+
     private Statement buildStatement(TransactionDto transactionDto) {
         Statement statement = new Statement();
         statement.setTransactionId(transactionDto.getId());

@@ -1,7 +1,6 @@
 package com.equals.transactionservice.client;
 
-import com.equals.transactionservice.config.WebClientConfig;
-import com.equals.transactionservice.dto.AccountBalanceDto;
+import com.equals.transactionservice.dto.BankAccountDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -15,9 +14,9 @@ public class AccountServiceClient {
         this.webClient = webClient;
     }
 
-    public AccountBalanceDto getAccountBalance(String accountNumber) {
-                return  webClient.get().uri("http://ACCOUNT-SERVICE/account/balance/" + accountNumber).retrieve()
-                        .bodyToMono(AccountBalanceDto.class).block();
+    public Mono<BankAccountDto> getAccountBalance(String accountNumber) {
+                return webClient.get().uri("http://localhost:8089/bank-account/" + accountNumber).retrieve()
+                        .bodyToMono(BankAccountDto.class);
 
 
     }

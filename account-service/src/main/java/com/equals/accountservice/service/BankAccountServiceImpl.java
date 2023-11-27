@@ -1,5 +1,6 @@
 package com.equals.accountservice.service;
 
+import com.equals.accountservice.common.NotFoundException;
 import com.equals.accountservice.domain.BankAccount;
 import com.equals.accountservice.repository.BankAccountRepository;
 import lombok.RequiredArgsConstructor;
@@ -45,10 +46,12 @@ public class BankAccountServiceImpl implements BankAccountService {
     @Override
     public Mono<BankAccount> findBankAccountByAccountNumber(String accountNumber) {
         return bankAccountCacheService.findByAccountNumber(accountNumber)
-                .switchIfEmpty(bankAccountRepository.findBankAccountByAccountNumber(accountNumber)
-                        .flatMap(bankAccount -> bankAccountCacheService.saveToCache(bankAccount.getAccountNumber(), bankAccount)
-                                .thenReturn(bankAccount))
-                );
+                .switchIfEmpty(
+                        Mono.defer(() -> bankAccountRepository.findBankAccountByAccountNumber(accountNumber)
+                                .flatMap(bankAccount -> bankAccountCacheService.saveToCache(bankAccount.getAccountNumber(), bankAccount)
+                                        .thenReturn(bankAccount))
+                                .switchIfEmpty(Mono.error(new NotFoundException("Bank account not found"))))
+                ).doOnError(f -> log.info("Error happened"));
 
     }
 

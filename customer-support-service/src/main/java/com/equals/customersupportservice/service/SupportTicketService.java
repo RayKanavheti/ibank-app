@@ -25,7 +25,7 @@ public class SupportTicketService {
 
       return supportTicketRepository.save(supportTicket).flatMap(s -> {
             streamBridge.send(TICKET_QUEUE, s);
-            return Mono.just(supportTicket);
+            return Mono.just(s);
         });
 
     }

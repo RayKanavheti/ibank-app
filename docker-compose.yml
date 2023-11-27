@@ -45,11 +45,67 @@ services:
       - 6379:6379
     networks:
       - redis-network
+  mongodb_container:
+    image: mongo:latest
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: mongodb
+    ports:
+      - 27017:27017
+    volumes:
+      - mongodb_data_container:/data/db
+  mongo_express:
+    image: mongo-express
+    depends_on:
+      - mongodb_container
+    environment:
+      ME_CONFIG_MONGODB_SERVER: mongodb_container
+      ME_CONFIG_MONGODB_ADMINUSERNAME: root
+      ME_CONFIG_MONGODB_ADMINPASSWORD: mongodb
+    ports:
+      - 8081:8081
+  eureka-server:
+    build:
+      context: ./eureka-server
+    ports:
+      - "8761:8761"
+
+  ibank-gateway:
+    build:
+      context: ./ibank-gateway
+    ports:
+      - "8085:8085"
+    depends_on:
+      - eureka-server
+
+  transaction-service:
+    build:
+      context: ./transaction-service
+    ports:
+      - "8086:8086"
+    depends_on:
+      - eureka-server
+
+  account-service:
+    build:
+      context: ./account-service
+    ports:
+      - "8089:8089"
+    depends_on:
+      - eureka-server
+
+  customer-support-service:
+    build:
+      context: ./customer-support-service
+    ports:
+      - "8087:8087"
+    depends_on:
+      - eureka-server
 
 volumes:
   redis:
   redis-config:
-
+  mongodb_data_container:
 networks:
   redis-network:
     driver: bridge

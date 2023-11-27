@@ -4,6 +4,7 @@ import com.equals.transactionservice.domain.Transaction;
 import com.equals.transactionservice.dto.DepositFundsRequest;
 import com.equals.transactionservice.dto.InternalTransferRequest;
 import com.equals.transactionservice.dto.WithDrawFundsRequest;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 public interface TransactionService {
@@ -17,6 +18,9 @@ public interface TransactionService {
      Mono<Transaction>  withdrawFunds(WithDrawFundsRequest request);
 
     Mono<Transaction> externalTransfer(InternalTransferRequest request);
+
+    Flux<Transaction> getRecentTransactions(String accountNumber);
+
 
 
 

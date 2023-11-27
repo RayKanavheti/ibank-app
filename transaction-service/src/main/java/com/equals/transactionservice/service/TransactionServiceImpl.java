@@ -1,5 +1,7 @@
 package com.equals.transactionservice.service;
 
+import com.equals.transactionservice.client.AccountServiceClient;
+import com.equals.transactionservice.common.NotFoundException;
 import com.equals.transactionservice.domain.Transaction;
 import com.equals.transactionservice.domain.TransactionType;
 import com.equals.transactionservice.dto.DepositFundsRequest;
@@ -11,14 +13,23 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.cloud.stream.function.StreamBridge;
+import org.springframework.data.redis.connection.Limit;
+import org.springframework.data.redis.connection.ReactiveRedisConnection;
+import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
+
+import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+
 import java.util.UUID;
+
 
 //import static com.equals.transactionservice.config.RabbitConfig.IBANK_TRANSACTION_QUEUE;
 
@@ -30,24 +41,29 @@ public class TransactionServiceImpl implements TransactionService {
     private final TransactionRepository transactionRepository;
     private final RabbitTemplate rabbitTemplate;
     private final StreamBridge streamBridge;
+    private final AccountServiceClient accountServiceClient;
+    private final ReactiveRedisTemplate<String, Transaction> reactiveRedisTemplate;
     public static final String IBANK_TRANSACTION_QUEUE = "transactionBinding-out-0";
+
     @Override
     @Transactional
     public Mono<Transaction> depositFunds(DepositFundsRequest request) {
+        return accountServiceClient.getAccountBalance(request.getToAccountNumber()).flatMap(acc -> {
+            Transaction transaction = buildTransaction(TransactionType.DEPOSIT, request.getAmount());
+            transaction.setToAccount(request.getToAccountNumber());
 
-        Transaction transaction = buildTransaction(TransactionType.DEPOSIT, request.getAmount());
-        transaction.setToAccount(request.getToAccountNumber());
+            return transactionRepository.save(transaction).
+                    flatMap(trans -> {
+                        log.info("Transaction {}", trans);
+                        TransactionDto transactionDto = buildTransactionDto(trans);
+                        transactionDto.setToAccount(trans.getToAccount());
+                        // rabbitTemplate.convertAndSend(IBANK_TRANSACTION_QUEUE, transactionDto);
+                        streamBridge.send(IBANK_TRANSACTION_QUEUE, transactionDto);
 
-        return transactionRepository.save(transaction).
-                flatMap(trans -> {
-                    log.info("Transaction {}", trans);
-                    TransactionDto transactionDto = buildTransactionDto(trans);
-                    transactionDto.setToAccount(trans.getToAccount());
-                   // rabbitTemplate.convertAndSend(IBANK_TRANSACTION_QUEUE, transactionDto);
-                    streamBridge.send(IBANK_TRANSACTION_QUEUE, transactionDto);
+                        return Mono.just(trans);
+                    }).doOnError(throwable -> log.error("Failed to Deposit Funds", throwable));
+        }).switchIfEmpty(Mono.error(new NotFoundException("Account Not found")));
 
-                    return Mono.just(trans);
-                }).doOnError(throwable -> log.error("Failed to Deposit Funds", throwable));
 
     }
 
@@ -64,7 +80,7 @@ public class TransactionServiceImpl implements TransactionService {
                     transactionDto.setFromAccount(trans.getFromAccount());
                     transactionDto.setToAccount(trans.getToAccount());
 
-                   // rabbitTemplate.convertAndSend(IBANK_TRANSACTION_QUEUE, transactionDto);
+                    // rabbitTemplate.convertAndSend(IBANK_TRANSACTION_QUEUE, transactionDto);
                     streamBridge.send(IBANK_TRANSACTION_QUEUE, transactionDto);
                     return Mono.just(trans);
                 }).doOnError(throwable -> log.error("Failed to process internal Transfer", throwable));
@@ -80,7 +96,7 @@ public class TransactionServiceImpl implements TransactionService {
                     log.info("Transaction {}", trans);
                     TransactionDto transactionDto = buildTransactionDto(trans);
                     transactionDto.setFromAccount(trans.getFromAccount());
-                   // rabbitTemplate.convertAndSend(IBANK_TRANSACTION_QUEUE, transactionDto);
+                    // rabbitTemplate.convertAndSend(IBANK_TRANSACTION_QUEUE, transactionDto);
                     streamBridge.send(IBANK_TRANSACTION_QUEUE, transactionDto);
 
                     return Mono.just(trans);
@@ -92,6 +108,32 @@ public class TransactionServiceImpl implements TransactionService {
 
         return internalTransfer(request);
         // TODO to include logic for external banks e.g external bank acknowledging having received funds by way of a call back URL, probably stub a third party bank
+    }
+
+    @Override
+    public Flux<Transaction> getRecentTransactions(String accountNumber) {
+        String key = "recentTransactions-" + accountNumber;
+        Limit limit = Limit.limit().count(5);
+        var scoreRange = org.springframework.data.domain.Range.closed(100.0, Double.POSITIVE_INFINITY);
+        return reactiveRedisTemplate.opsForZSet()
+                .reverseRangeByScore(key, scoreRange, limit)
+                .flatMap(transactionId -> reactiveRedisTemplate.opsForValue().get(transactionId))
+                .collectList()
+                .flatMapMany(transactions -> {
+                    if (transactions.isEmpty()) {
+                        return transactionRepository.findTop5ByFromAccountOrToAccountOrderByTransactionDateDesc(accountNumber, accountNumber)
+                                .doOnNext(transaction -> reactiveRedisTemplate.opsForZSet()
+                                        .add(key, transaction,
+                                                transaction.getTransactionDate().toEpochSecond(ZoneOffset.UTC))
+                                        .then()
+                                        .subscribe())
+                                .timeout(Duration.ofSeconds(5));
+                    } else {
+                        return Flux.fromIterable(transactions);
+                    }
+                });
+
+        // TODO giving me a serializable error, needs to be fixed later
     }
 
 
@@ -117,4 +159,6 @@ public class TransactionServiceImpl implements TransactionService {
     DateTimeFormatter formatDate() {
         return DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
     }
+
+
 }
