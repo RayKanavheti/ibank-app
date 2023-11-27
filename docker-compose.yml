@@ -43,8 +43,8 @@ services:
       - redis-config:/usr/local/etc/redis/redis.conf
     ports:
       - 6379:6379
-    networks:
-      - redis-network
+    # networks:
+    #   - redis-network
   mongodb_container:
     image: mongo:latest
     environment:
@@ -93,6 +93,8 @@ services:
       - "8089:8089"
     depends_on:
       - eureka-server
+    # networks:
+    #   - redis-network
 
   customer-support-service:
     build:
@@ -106,6 +108,6 @@ volumes:
   redis:
   redis-config:
   mongodb_data_container:
-networks:
-  redis-network:
-    driver: bridge
+# networks:
+#   redis-network:
+#     driver: bridge
