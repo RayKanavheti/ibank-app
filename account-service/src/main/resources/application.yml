@@ -49,7 +49,7 @@ eureka:
   instance:
     leaseRenewalIntervalInSeconds: 5
     leaseExpirationDurationInSeconds: 5
-    hostname: localhost
+    hostname: account-service
 
 auth:
   secret-key: ${SECRET_KEY:5367566B59703273357638792GSFHSTTHHS52241255555552212}

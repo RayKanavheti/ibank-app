@@ -30,7 +30,7 @@ eureka:
   instance:
     leaseRenewalIntervalInSeconds: 5
     leaseExpirationDurationInSeconds: 5
-    hostname: localhost
+    hostname: ibank-gateway
 #Routes
 spring.cloud.gateway.routes:
   - id: account-service
