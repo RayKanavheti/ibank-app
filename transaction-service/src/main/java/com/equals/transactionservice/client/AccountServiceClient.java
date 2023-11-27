@@ -15,7 +15,7 @@ public class AccountServiceClient {
     }
 
     public Mono<BankAccountDto> getAccountBalance(String accountNumber) {
-                return webClient.get().uri("http://localhost:8089/bank-account/" + accountNumber).retrieve()
+                return webClient.get().uri("http://account-service:8089/account/bank/" + accountNumber).retrieve()
                         .bodyToMono(BankAccountDto.class);
 
 

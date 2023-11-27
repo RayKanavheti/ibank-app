@@ -16,7 +16,7 @@ import reactor.core.publisher.Mono;
 import java.time.LocalDateTime;
 
 @RestController
-@RequestMapping("/statement")
+@RequestMapping("/account/statement")
 public class StatementController {
 
     @Autowired

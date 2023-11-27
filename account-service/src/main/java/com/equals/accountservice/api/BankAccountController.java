@@ -7,13 +7,13 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
 @RestController
-@RequestMapping("/bank-account")
+@RequestMapping("/account/bank")
 public class BankAccountController {
 
     @Autowired
     BankAccountService bankAccountService;
 
-    @PostMapping()
+    @PostMapping("/create")
     public Mono<BankAccount> createBankAccount(@RequestBody BankAccount bankAccount) {
         return bankAccountService.createBankAccount(bankAccount);
     }

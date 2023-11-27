@@ -1,10 +1,37 @@
-#App
 spring:
   application:
     name: EDGE-SERVER
+  cloud:
+    gateway:
+      routes:
+        - id: account-service
+          uri: lb://ACCOUNT-SERVICE
+          predicates:
+            - Path=/account/**
+
+        - id: transaction-service
+          uri: lb://TRANSACTION-SERVICE
+          predicates:
+            - Path=/transaction/**
+
+        - id: customer-support-service
+          uri: lb://CUSTOMER-SUPPORT-SERVICE
+          predicates:
+            - Path=/customer-support/**
+
+        - id: eureka-ui
+          uri: http://eureka-server:8761
+          predicates:
+            - Path=/eurekawebui
+
+        - id: eureka-css-js
+          uri: http://eureka-server:8761
+          predicates:
+            - Path=/eureka/**
+
 server:
   port: 8085
-#Actuator
+
 management:
   endpoints:
     web:
@@ -13,43 +40,19 @@ management:
     health:
       show-details: always
 
-#Logs
 logging:
   level:
     root: INFO
     org.springframework.cloud.gateway.route.RouteDefinitionRouteLocator: INFO
     org.springframework.cloud.gateway: TRACE
 
-#Eureka
 eureka:
   client:
     serviceUrl:
       defaultZone: http://eureka-server:8761/eureka/
-      initialInstanceInfoReplicationIntervalSeconds: 5
-      registryFetchIntervalSeconds: 5
+    initialInstanceInfoReplicationIntervalSeconds: 5
+    registryFetchIntervalSeconds: 5
   instance:
     leaseRenewalIntervalInSeconds: 5
     leaseExpirationDurationInSeconds: 5
     hostname: ibank-gateway
-#Routes
-spring.cloud.gateway.routes:
-  - id: account-service
-    uri: lb://ACCOUNT-SERVICE
-    predicates:
-      - Path=/account/**
-  - id: transaction-service
-    uri: lb://TRANSACTION-SERVICE
-    predicates:
-      - Path=/transaction/**
-  - id: customer-support-service
-    uri: lb://CUSTOMER-SUPPORT-SERVICE
-    predicates:
-      - Path=/customer-support/**
-  - id: eureka-ui
-    uri: http://eureka-server:8761
-    predicates:
-      - Path=/eurekawebui
-  - id: eureka-css-js
-    uri: http://eureka-server:8761
-    predicates:
-      - Path=/eureka/**

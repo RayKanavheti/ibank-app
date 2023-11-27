@@ -1,6 +1,6 @@
 spring:
   application:
-    name: account-service
+    name: ACCOUNT-SERVICE
   cloud:
     function:
       definition: transactionBinding

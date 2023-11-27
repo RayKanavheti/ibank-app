@@ -10,13 +10,13 @@ import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
 
 @RestController
-@RequestMapping("/customer")
+@RequestMapping("/account/customer")
 public class CustomerController {
 
     @Autowired
     CustomerService customerService;
 
-    @PostMapping()
+    @PostMapping("/create")
     public Mono<Customer> createCustomer(@RequestBody Customer customer) {
         return customerService.createCustomer(customer);
     }
